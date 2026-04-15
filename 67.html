@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wichtige Mitteilung</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #000;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+
+    /* Cookie Banner */
+    #cookie-banner {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    #cookie-box {
+      background: #fff;
+      border-radius: 12px;
+      padding: 36px 40px;
+      max-width: 420px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    }
+
+    #cookie-box h2 {
+      font-size: 1.3rem;
+      margin-bottom: 12px;
+      color: #111;
+    }
+
+    #cookie-box p {
+      font-size: 0.9rem;
+      color: #555;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .btn {
+      padding: 12px 28px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      font-weight: bold;
+      transition: opacity 0.2s;
+    }
+
+    .btn:hover { opacity: 0.85; }
+    .btn-accept { background: #2563eb; color: #fff; }
+    .btn-decline { background: #e5e7eb; color: #333; }
+
+    /* Fullscreen GIF Trap */
+    #trap {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      background: #000;
+    }
+
+    #trap img {
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      display: block;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    /* Block all escape attempts */
+    #trap::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 100000;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Cookie Banner -->
+  <div id="cookie-banner">
+    <div id="cookie-box">
+      <h2>🍪 Diese Website verwendet Cookies</h2>
+      <p>
+        Wir verwenden Cookies, um Ihr Erlebnis zu verbessern, den Datenverkehr zu analysieren
+        und Inhalte zu personalisieren. Bitte stimmen Sie der Verwendung zu.
+      </p>
+      <div class="btn-row">
+        <button class="btn btn-accept" onclick="trigger()">Akzeptieren</button>
+        <button class="btn btn-decline" onclick="trigger()">Ablehnen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fullscreen Trap -->
+  <div id="trap">
+    <img
+      src="https://miro.medium.com/0*VV6JN1TbvZZ-iqtF.gif"
+      alt=""
+      draggable="false"
+    />
+  </div>
+
+  <!-- Audio -->
+  <audio id="scream" loop preload="auto">
+    <!-- Klassischer Wilhelm Scream / Horror Schrei via freesound proxy -->
+    <source src="https://www.soundjay.com/human/sounds/female-scream-1.mp3" type="audio/mpeg" />
+    <!-- Fallback: base64-encoded beep falls kein Sound lädt -->
+  </audio>
+
+  <script>
+    // Verhindert Rechtsklick
+    document.addEventListener('contextmenu', e => e.preventDefault());
+
+    // Verhindert F12, Strg+W, Strg+R, etc.
+    document.addEventListener('keydown', function(e) {
+      // Block: F12, F5, Ctrl+W, Ctrl+R, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Escape, Alt+F4
+      const blocked = [
+        e.key === 'F12',
+        e.key === 'F5',
+        e.key === 'Escape',
+        e.ctrlKey && e.key === 'w',
+        e.ctrlKey && e.key === 'r',
+        e.ctrlKey && e.key === 'u',
+        e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i'),
+        e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j'),
+        e.altKey && e.key === 'F4',
+      ];
+      if (blocked.some(Boolean)) e.preventDefault();
+    });
+
+    function trigger() {
+      // Cookie Banner verstecken
+      document.getElementById('cookie-banner').style.display = 'none';
+
+      // GIF Trap anzeigen
+      const trap = document.getElementById('trap');
+      trap.style.display = 'block';
+
+      // Vollbild erzwingen
+      const el = document.documentElement;
+      const goFull = el.requestFullscreen
+        || el.webkitRequestFullscreen
+        || el.mozRequestFullScreen
+        || el.msRequestFullscreen;
+      if (goFull) goFull.call(el).catch(() => {});
+
+      // Vollbild sperren — verhindert Escape aus Fullscreen
+      document.addEventListener('fullscreenchange', () => {
+        if (!document.fullscreenElement) {
+          if (goFull) goFull.call(el).catch(() => {});
+        }
+      });
+      document.addEventListener('webkitfullscreenchange', () => {
+        if (!document.webkitFullscreenElement) {
+          if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+        }
+      });
+
+      // Sound auf voller Lautstärke abspielen
+      const audio = document.getElementById('scream');
+      audio.volume = 1.0;
+      audio.play().catch(() => {
+        // Autoplay blocked — retry on any interaction
+        document.addEventListener('click', () => audio.play(), { once: true });
+        document.addEventListener('touchstart', () => audio.play(), { once: true });
+      });
+    }
+  </script>
+
+</body>
+</html>
